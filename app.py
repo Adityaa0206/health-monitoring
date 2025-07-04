@@ -1,13 +1,17 @@
 from flask import Flask, jsonify, request, render_template
 import datetime
+import os
 import mysql.connector
+
+
 
 # Connect to MySQL
 db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="Adityaharsh0206",  # Replace with your actual password
-    database="health_monitoring"
+    host=os.environ.get("DB_HOST"),
+    user=os.environ.get("DB_USER"),
+    password=os.environ.get("DB_PASSWORD"),
+    database=os.environ.get("DB_NAME"),
+    port=int(os.environ.get("DB_PORT"))
 )
 
 cursor = db.cursor()
