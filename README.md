@@ -29,8 +29,7 @@ It simulates sensor data (heart rate, SpO2, and body temperature), stores it in 
 
 ## 📸 Preview
 
-> (Insert a screenshot here after your chart and styling are finalized)
-
+![Dashboard Preview](dashboard.png)
 ---
 
 ## 📦 Folder Structure
