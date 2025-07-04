@@ -29,7 +29,8 @@ It simulates sensor data (heart rate, SpO2, and body temperature), stores it in 
 
 ## 📸 Preview
 
-![Dashboard Preview](dashboard.png)
+[![Dashboard Preview](dashboard.png)](dashboard.png)
+
 ---
 
 ## 📦 Folder Structure
