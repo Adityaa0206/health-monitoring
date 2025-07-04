@@ -29,9 +29,21 @@ It simulates sensor data (heart rate, SpO2, and body temperature), stores it in 
 
 ## 📸 Preview
 
-[![Dashboard Preview](dashboard.png)](dashboard.png)
-
+[![Dashboard Preview](dashboard.png)](https://raw.githubusercontent.com/Adityaa0206/health-monitoring/main/dashboard.png)
 ---
 
 ## 📦 Folder Structure
+health-monitoring/
+├── app.py
+├── backend/
+│ └── templates/
+│ └── dashboard.html
+├── static/
+│ ├── css/
+│ │ └── style.css
+│ └── js/
+│ └── chart.js
+├── simulate_sensor.py
+├── requirements.txt
+└── README.md
 
