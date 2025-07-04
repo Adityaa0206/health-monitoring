@@ -53,5 +53,24 @@ def get_latest_health_data():
         return jsonify({"error": "No data found"}), 404
 
 # Run Flask app
+# API to fetch last 10 sensor readings (for chart)
+@app.route('/api/history', methods=["GET"])
+def health_history():
+    cursor.execute("SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 10")
+    rows = cursor.fetchall()
+
+    history = []
+    for row in rows[::-1]:  # reverse to get chronological order
+        record = {
+            'id': row[0],
+            'bpm': row[1],
+            'spo2': row[2],
+            'temperature': row[3],
+            'timestamp': row[4].strftime('%H:%M:%S')
+        }
+        history.append(record)
+
+    return jsonify(history)
+
 if __name__ == "__main__":
     app.run(debug=True)
