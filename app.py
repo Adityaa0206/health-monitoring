@@ -1,23 +1,26 @@
 from flask import Flask, jsonify, request, render_template
 import datetime
 import os
+from dotenv import load_dotenv
+
 import mysql.connector
+load_dotenv()
 
 
 
-# Connect to MySQL
 db = mysql.connector.connect(
-    host=os.environ.get("DB_HOST"),
-    user=os.environ.get("DB_USER"),
-    password=os.environ.get("DB_PASSWORD"),
-    database=os.environ.get("DB_NAME"),
-    port=int(os.environ.get("DB_PORT"))
-)
+    host=os.getenv("MYSQLHOST"),
+    user=os.getenv("MYSQLUSER"),
+    password=os.getenv("MYSQLPASSWORD"),
+    database=os.getenv("MYSQLDATABASE"),
+    port=int(os.getenv("MYSQLPORT", 3306))
 
+
+)
 cursor = db.cursor()
+
 app = Flask(__name__, template_folder="backend/templates", static_folder="static")
 
-# Route to receive health data (used by simulate_sensor.py)
 @app.route("/api/health", methods=["POST"])
 def receive_health_data():
     data = request.get_json()
@@ -31,15 +34,12 @@ def receive_health_data():
     cursor.execute(sql, values)
     db.commit()
 
-    print(f"[{timestamp}] Received health data: {data}")
     return jsonify({"status": "success", "message": "Health data saved to MySQL"}), 200
 
-# Route to render dashboard.html
 @app.route("/")
 def dashboard():
     return render_template("dashboard.html")
 
-# ✅ NEW: Route to serve latest health data (used by Chart.js)
 @app.route("/api/health/latest", methods=["GET"])
 def get_latest_health_data():
     cursor.execute("SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 1")
@@ -56,15 +56,13 @@ def get_latest_health_data():
     else:
         return jsonify({"error": "No data found"}), 404
 
-# Run Flask app
-# API to fetch last 10 sensor readings (for chart)
-@app.route('/api/history', methods=["GET"])
+@app.route("/api/history", methods=["GET"])
 def health_history():
     cursor.execute("SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 10")
     rows = cursor.fetchall()
 
     history = []
-    for row in rows[::-1]:  # reverse to get chronological order
+    for row in rows[::-1]:
         record = {
             'id': row[0],
             'bpm': row[1],
@@ -77,4 +75,4 @@ def health_history():
     return jsonify(history)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
