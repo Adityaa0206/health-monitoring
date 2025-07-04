@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Health Monitoring Dashboard</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🩺 Real-Time Health Monitoring</h1>
+
+        <!-- Top summary cards -->
+        <div class="cards">
+            <div class="card">
+                <h2>BPM</h2>
+                <p id="bpmValue">--</p>
+            </div>
+            <div class="card">
+                <h2>SpO₂</h2>
+                <p id="spo2Value">--</p>
+            </div>
+            <div class="card">
+                <h2>Temperature</h2>
+                <p id="tempValue">--</p>
+            </div>
+        </div>
+
+        <!-- Line charts -->
+        <div class="charts">
+            <canvas id="bpmChart"></canvas>
+            <canvas id="spo2Chart"></canvas>
+            <canvas id="tempChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const bpmData = [], spo2Data = [], tempData = [], labels = [];
+
+        const bpmChart = new Chart(document.getElementById('bpmChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'BPM',
+                    data: bpmData,
+                    borderColor: 'red',
+                    fill: false,
+                    tension: 0.4
+                }]
+            }
+        });
+
+        const spo2Chart = new Chart(document.getElementById('spo2Chart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'SpO₂',
+                    data: spo2Data,
+                    borderColor: 'blue',
+                    fill: false,
+                    tension: 0.4
+                }]
+            }
+        });
+
+        const tempChart = new Chart(document.getElementById('tempChart'), {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Temperature',
+                    data: tempData,
+                    borderColor: 'orange',
+                    fill: false,
+                    tension: 0.4
+                }]
+            }
+        });
+
+        async function fetchData() {
+            const res = await fetch('/api/health/latest');
+            const data = await res.json();
+            const time = new Date().toLocaleTimeString();
+
+            document.getElementById('bpmValue').innerText = data.bpm ?? '--';
+            document.getElementById('spo2Value').innerText = data.spo2 ?? '--';
+            document.getElementById('tempValue').innerText = data.temperature ?? '--';
+
+            labels.push(time);
+            bpmData.push(data.bpm);
+            spo2Data.push(data.spo2);
+            tempData.push(data.temperature);
+
+            if (labels.length > 10) {
+                labels.shift();
+                bpmData.shift();
+                spo2Data.shift();
+                tempData.shift();
+            }
+
+            bpmChart.update();
+            spo2Chart.update();
+            tempChart.update();
+        }
+
+        fetchData(); // initial
+        setInterval(fetchData, 5000);
+    </script>
+</body>
+</html>
