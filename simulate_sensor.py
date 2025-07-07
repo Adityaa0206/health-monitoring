@@ -2,7 +2,8 @@ import requests
 import random
 import time
 
-URL = "https://health-monitoring-c45l.onrender.com"
+URL = "https://health-monitoring-c45l.onrender.com/api/health"  
+
 
 while True:
     data = {
