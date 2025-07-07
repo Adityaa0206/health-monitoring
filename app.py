@@ -27,7 +27,7 @@ def receive_health_data():
     bpm = data.get("bpm")
     spo2 = data.get("spo2")
     temperature = data.get("temperature")
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    timestamp = datetime.datetime.now()
 
     sql = "INSERT INTO sensor_data (bpm, spo2, temperature, timestamp) VALUES (%s, %s, %s, %s)"
     values = (bpm, spo2, temperature, timestamp)
@@ -85,7 +85,8 @@ def simulate_data():
 
         try:
             requests.post(
-                "https://health-monitoring-3-14wk.onrender.com/api/health",
+                "https://health-monitoring-c45l.onrender.com" \
+                "",
                 json=data,
                 timeout=5
             )
