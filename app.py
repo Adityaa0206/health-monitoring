@@ -1,14 +1,12 @@
 from flask import Flask, jsonify, request, render_template
 import datetime
 import os
-import mysql.connector
-import threading
-import time
-import random
-import requests
 from dotenv import load_dotenv
 
+import mysql.connector
 load_dotenv()
+
+
 
 db = mysql.connector.connect(
     host=os.getenv("MYSQLHOST"),
@@ -16,6 +14,7 @@ db = mysql.connector.connect(
     password=os.getenv("MYSQLPASSWORD"),
     database=os.getenv("MYSQLDATABASE"),
     port=int(os.environ.get("MYSQLPORT", 3306))
+
 )
 cursor = db.cursor()
 
@@ -27,7 +26,8 @@ def receive_health_data():
     bpm = data.get("bpm")
     spo2 = data.get("spo2")
     temperature = data.get("temperature")
-    timestamp = datetime.datetime.now()
+    timestamp = datetime.datetime.fromtimestamp(row[4]).strftime('%H:%M:%S')
+
 
     sql = "INSERT INTO sensor_data (bpm, spo2, temperature, timestamp) VALUES (%s, %s, %s, %s)"
     values = (bpm, spo2, temperature, timestamp)
@@ -74,28 +74,5 @@ def health_history():
 
     return jsonify(history)
 
-# 🧠 Simulated data sender (runs every 10 seconds)
-def simulate_data():
-    while True:
-        data = {
-            "bpm": random.randint(60, 100),
-            "spo2": random.randint(90, 100),
-            "temperature": round(random.uniform(36.0, 37.5), 1)
-        }
-
-        try:
-            requests.post(
-                "https://health-monitoring-c45l.onrender.com" \
-                "",
-                json=data,
-                timeout=5
-            )
-            print("[SIMULATION] Data sent:", data)
-        except Exception as e:
-            print("[SIMULATION ERROR]", e)
-
-        time.sleep(10)
-
 if __name__ == "__main__":
-    threading.Thread(target=simulate_data, daemon=True).start()
-    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))  you can check my app.py
