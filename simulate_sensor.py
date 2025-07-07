@@ -2,7 +2,7 @@ import requests
 import random
 import time
 
-URL = "http://127.0.0.1:5000/api/health"
+URL = "https://health-monitoring-c45l.onrender.com"
 
 while True:
     data = {
@@ -17,4 +17,4 @@ while True:
     except Exception as e:
         print("Error:", e)
 
-    time.sleep(5)  # send data every 5 seconds
+    time.sleep(5) 
