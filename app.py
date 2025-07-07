@@ -1,10 +1,9 @@
 from flask import Flask, jsonify, request, render_template
 import datetime
 import os
-from dotenv import load_dotenv
 
 import mysql.connector
-load_dotenv()
+
 
 
 
@@ -74,5 +73,27 @@ def health_history():
 
     return jsonify(history)
 
+def simulate_data():
+    while True:
+        data = {
+            "bpm": random.randint(60, 100),
+            "spo2": random.randint(90, 100),
+            "temperature": round(random.uniform(36.0, 37.5), 1)
+        }
+
+        try:
+            requests.post(
+                "https://health-monitoring-3-14wk.onrender.com/api/health",
+                json=data,
+                timeout=5
+            )
+            print("[SIMULATION] Data sent:", data)
+        except Exception as e:
+            print("[SIMULATION ERROR]", e)
+
+        time.sleep(10)
+
+
 if __name__ == "__main__":
+    threading.Thread(target=simulate_data, daemon=True).start()
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
