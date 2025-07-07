@@ -1,24 +1,21 @@
 from flask import Flask, jsonify, request, render_template
 import datetime
 import os
+import mysql.connector
 import threading
 import time
 import random
 import requests
+from dotenv import load_dotenv
 
-import mysql.connector
-
-
-
+load_dotenv()
 
 db = mysql.connector.connect(
     host=os.getenv("MYSQLHOST"),
     user=os.getenv("MYSQLUSER"),
     password=os.getenv("MYSQLPASSWORD"),
     database=os.getenv("MYSQLDATABASE"),
-    port=int(os.getenv("MYSQLPORT", 3306))
-
-
+    port=int(os.environ.get("MYSQLPORT", 3306))
 )
 cursor = db.cursor()
 
@@ -77,6 +74,7 @@ def health_history():
 
     return jsonify(history)
 
+# 🧠 Simulated data sender (runs every 10 seconds)
 def simulate_data():
     while True:
         data = {
@@ -96,7 +94,6 @@ def simulate_data():
             print("[SIMULATION ERROR]", e)
 
         time.sleep(10)
-
 
 if __name__ == "__main__":
     threading.Thread(target=simulate_data, daemon=True).start()
