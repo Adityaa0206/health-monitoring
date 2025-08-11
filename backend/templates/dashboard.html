@@ -26,6 +26,9 @@
             </div>
         </div>
 
+        <!-- Warning messages -->
+        <div id="warnings" style="display:none; margin-top: 15px; font-weight: bold;"></div>
+
         <!-- Separate Line Charts -->
         <div class="charts">
             <canvas id="bpmChart"></canvas>
@@ -103,6 +106,16 @@
             bpmChart.update();
             spo2Chart.update();
             tempChart.update();
+
+            // Show warnings if any
+            const warningsDiv = document.getElementById('warnings');
+            if (data.warnings && data.warnings.length > 0) {
+                warningsDiv.innerHTML = data.warnings.map(w => `<p style="color:red;">⚠️ ${w}</p>`).join('');
+                warningsDiv.style.display = 'block';
+            } else {
+                warningsDiv.innerHTML = '';
+                warningsDiv.style.display = 'none';
+            }
         }
 
         fetchData();

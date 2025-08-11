@@ -15,6 +15,25 @@ async function fetchHealthData() {
     }
 }
 
+// ⚠️ Fetch latest record to get warnings
+async function fetchLatestWithWarnings() {
+    try {
+        const response = await fetch('/api/health/latest');
+        const data = await response.json();
+        const warningsDiv = document.getElementById('warnings');
+
+        if (data.warnings && data.warnings.length > 0) {
+            warningsDiv.innerHTML = data.warnings.map(w => `<p style="color:red;">⚠️ ${w}</p>`).join('');
+            warningsDiv.style.display = 'block';
+        } else {
+            warningsDiv.innerHTML = '';
+            warningsDiv.style.display = 'none';
+        }
+    } catch (error) {
+        console.error("Failed to fetch latest health data:", error);
+    }
+}
+
 let chartInstance = null;
 
 // 📈 Create or update the Chart.js graph
@@ -87,6 +106,12 @@ function updateChart(labels, bpmData, spo2Data, tempData) {
     });
 }
 
-// 🔄 Refresh data every 5 seconds
-setInterval(fetchHealthData, 5000);
+// 🔄 Refresh data and warnings every 5 seconds
+setInterval(() => {
+    fetchHealthData();
+    fetchLatestWithWarnings();
+}, 5000);
+
+// Initial fetch calls
 fetchHealthData();
+fetchLatestWithWarnings();
