@@ -6,22 +6,28 @@ import mysql.connector
 
 load_dotenv()
 
-# Database connection
-db = mysql.connector.connect(
-    host=os.getenv("MYSQLHOST"),
-    user=os.getenv("MYSQLUSER"),
-    password=os.getenv("MYSQLPASSWORD"),
-    database=os.getenv("MYSQLDATABASE"),
-    port=int(os.environ.get("MYSQLPORT", 3306))
-)
-cursor = db.cursor()
-
-# Flask app setup
 app = Flask(__name__, template_folder="backend/templates", static_folder="static")
 
-# Route to receive health data from device
+# Try to connect to MySQL, if fails, set db and cursor to None
+try:
+    db = mysql.connector.connect(
+        host=os.getenv("MYSQLHOST"),
+        user=os.getenv("MYSQLUSER"),
+        password=os.getenv("MYSQLPASSWORD"),
+        database=os.getenv("MYSQLDATABASE"),
+        port=int(os.environ.get("MYSQLPORT", 3306))
+    )
+    cursor = db.cursor()
+except mysql.connector.Error as err:
+    print("Warning: Could not connect to MySQL database locally:", err)
+    db = None
+    cursor = None
+
 @app.route("/api/health", methods=["POST"])
 def receive_health_data():
+    if not cursor or not db:
+        return jsonify({"error": "Database not connected"}), 500
+
     data = request.get_json()
     bpm = data.get("bpm")
     spo2 = data.get("spo2")
@@ -35,14 +41,15 @@ def receive_health_data():
 
     return jsonify({"status": "success", "message": "Health data saved to MySQL"}), 200
 
-# Dashboard page
 @app.route("/")
 def dashboard():
     return render_template("dashboard.html")
 
-# API to get latest health data
 @app.route("/api/health/latest", methods=["GET"])
 def get_latest_health_data():
+    if not cursor:
+        return jsonify({"error": "Database not connected"}), 500
+
     cursor.execute("SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 1")
     latest = cursor.fetchone()
     if latest:
@@ -57,9 +64,11 @@ def get_latest_health_data():
     else:
         return jsonify({"error": "No data found"}), 404
 
-# API to get last 10 records
 @app.route("/api/history", methods=["GET"])
 def health_history():
+    if not cursor:
+        return jsonify({"error": "Database not connected"}), 500
+
     cursor.execute("SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 10")
     rows = cursor.fetchall()
 
@@ -77,4 +86,5 @@ def health_history():
     return jsonify(history)
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host="0.0.0.0", port=port)
