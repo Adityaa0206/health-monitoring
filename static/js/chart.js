@@ -29,6 +29,12 @@ async function fetchLatestWithWarnings() {
             warningsDiv.innerHTML = '';
             warningsDiv.style.display = 'none';
         }
+
+        // Update top cards with latest values too
+        document.getElementById('bpmValue').innerText = data.bpm ?? '--';
+        document.getElementById('spo2Value').innerText = data.spo2 ?? '--';
+        document.getElementById('tempValue').innerText = data.temperature ?? '--';
+
     } catch (error) {
         console.error("Failed to fetch latest health data:", error);
     }
@@ -89,7 +95,7 @@ function updateChart(labels, bpmData, spo2Data, tempData) {
             },
             scales: {
                 y: {
-                    beginAtZero: true,
+                    beginAtZero: false,
                     title: {
                         display: true,
                         text: 'Measurement'

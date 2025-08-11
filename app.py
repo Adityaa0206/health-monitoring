@@ -34,10 +34,28 @@ def receive_health_data():
     temperature = data.get("temperature")
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
+    # Insert into sensor_data table
     sql = "INSERT INTO sensor_data (bpm, spo2, temperature, timestamp) VALUES (%s, %s, %s, %s)"
     values = (bpm, spo2, temperature, timestamp)
     cursor.execute(sql, values)
     db.commit()
+
+    # Check for warnings
+    warnings = []
+    if bpm is not None and bpm > 100:
+        warnings.append("High heart rate detected!")
+    if spo2 is not None and spo2 < 95:
+        warnings.append("Low oxygen saturation detected!")
+    if temperature is not None and temperature > 38:
+        warnings.append("High temperature detected!")
+
+    # Log warnings if any
+    if warnings:
+        warning_text = "; ".join(warnings)
+        log_sql = "INSERT INTO warning_logs (bpm, spo2, temperature, warnings, timestamp) VALUES (%s, %s, %s, %s, %s)"
+        log_values = (bpm, spo2, temperature, warning_text, timestamp)
+        cursor.execute(log_sql, log_values)
+        db.commit()
 
     return jsonify({"status": "success", "message": "Health data saved to MySQL"}), 200
 
@@ -53,27 +71,23 @@ def get_latest_health_data():
     cursor.execute("SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 1")
     latest = cursor.fetchone()
     if latest:
-        bpm = latest[1]
-        spo2 = latest[2]
-        temperature = latest[3]
-
-        # Warning thresholds
-        warnings = []
-        if bpm > 120:
-            warnings.append("High Heart Rate")
-        if spo2 < 90:
-            warnings.append("Low Oxygen Level")
-        if temperature > 38:
-            warnings.append("High Temperature")
-
         data = {
             "id": latest[0],
-            "bpm": bpm,
-            "spo2": spo2,
-            "temperature": temperature,
+            "bpm": latest[1],
+            "spo2": latest[2],
+            "temperature": latest[3],
             "timestamp": latest[4].strftime("%Y-%m-%d %H:%M:%S"),
-            "warnings": warnings
+            "warnings": []
         }
+
+        # Generate warnings on latest data too (optional but useful)
+        if data["bpm"] > 100:
+            data["warnings"].append("High heart rate detected!")
+        if data["spo2"] < 95:
+            data["warnings"].append("Low oxygen saturation detected!")
+        if data["temperature"] > 38:
+            data["warnings"].append("High temperature detected!")
+
         return jsonify(data)
     else:
         return jsonify({"error": "No data found"}), 404
@@ -99,6 +113,25 @@ def health_history():
 
     return jsonify(history)
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(debug=True, host="0.0.0.0", port=port)
+@app.route("/api/warnings", methods=["GET"])
+def get_warning_logs():
+    if not cursor:
+        return jsonify({"error": "Database not connected"}), 500
+
+    cursor.execute("SELECT * FROM warning_logs ORDER BY timestamp DESC LIMIT 20")
+    rows = cursor.fetchall()
+
+    logs = []
+    for row in rows:
+        logs.append({
+            "id": row[0],
+            "bpm": row[1],
+            "spo2": row[2],
+            "temperature": row[3],
+            "warnings": row[4],
+            "timestamp": row[5].strftime("%Y-%m-%d %H:%M:%S")
+        })
+
+    return jsonify(logs)
+
+if __na
