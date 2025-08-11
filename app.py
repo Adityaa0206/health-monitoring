@@ -53,12 +53,26 @@ def get_latest_health_data():
     cursor.execute("SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 1")
     latest = cursor.fetchone()
     if latest:
+        bpm = latest[1]
+        spo2 = latest[2]
+        temperature = latest[3]
+
+        # Warning thresholds
+        warnings = []
+        if bpm > 120:
+            warnings.append("High Heart Rate")
+        if spo2 < 90:
+            warnings.append("Low Oxygen Level")
+        if temperature > 38:
+            warnings.append("High Temperature")
+
         data = {
             "id": latest[0],
-            "bpm": latest[1],
-            "spo2": latest[2],
-            "temperature": latest[3],
-            "timestamp": latest[4].strftime("%Y-%m-%d %H:%M:%S")
+            "bpm": bpm,
+            "spo2": spo2,
+            "temperature": temperature,
+            "timestamp": latest[4].strftime("%Y-%m-%d %H:%M:%S"),
+            "warnings": warnings
         }
         return jsonify(data)
     else:
